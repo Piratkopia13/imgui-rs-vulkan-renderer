@@ -19,7 +19,7 @@ exclude = [
 [dependencies]
 thiserror = "1.0"
 log = "0.4"
-imgui = {git = "https://github.com/Piratkopia13/imgui-rs", features = ["docking", "viewports"]}
+imgui = {git = "https://github.com/Piratkopia13/imgui-rs", features = ["docking"]}
 ash = { version = ">=0.34, <=0.37", default-features = false, features = ["debug"] }
 ultraviolet = "0.9"
 
@@ -34,8 +34,8 @@ vk-mem = { git = "https://github.com/adrien-ben/vk-mem-rs", tag = "0.2.3-ash-0.3
 [dev-dependencies]
 simple_logger = "2.1"
 winit = "0.26.0"
-imgui = {git = "https://github.com/Piratkopia13/imgui-rs", features = ["docking", "viewports", "tables-api"]}
-imgui-winit-support = { version = "^0.8", default-features = false, features = ["winit-26"] }
+imgui = { git = "https://github.com/Piratkopia13/imgui-rs", features = ["docking", "tables-api"] }
+imgui-winit-support = { git = "https://github.com/Piratkopia13/imgui-rs", default-features = false, features = ["viewports"] }
 ash = { version = "0.37", default-features = false, features = ["debug", "linked"] }
 ash-window = "0.10"
 image = "0.24"
