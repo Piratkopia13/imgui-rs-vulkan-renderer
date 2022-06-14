@@ -35,7 +35,7 @@ vk-mem = { git = "https://github.com/adrien-ben/vk-mem-rs", tag = "0.2.3-ash-0.3
 simple_logger = "2.1"
 winit = "0.26.0"
 imgui = { git = "https://github.com/Piratkopia13/imgui-rs", features = ["docking", "tables-api"] }
-imgui-winit-support = { git = "https://github.com/Piratkopia13/imgui-rs", default-features = false, features = ["viewports"] }
+imgui-winit-support = { git = "https://github.com/Piratkopia13/imgui-rs", features = ["viewports"] }
 ash = { version = "0.37", default-features = false, features = ["debug", "linked"] }
 ash-window = "0.10"
 image = "0.24"
