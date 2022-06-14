@@ -19,7 +19,7 @@ exclude = [
 [dependencies]
 thiserror = "1.0"
 log = "0.4"
-imgui = "^0.8"
+imgui = {git = "https://github.com/imgui-rs/imgui-rs/", rev = "1de842a4", features = ["docking"]}
 ash = { version = ">=0.34, <=0.37", default-features = false, features = ["debug"] }
 ultraviolet = "0.9"
 
