@@ -1,7 +1,7 @@
 use crate::{RendererError, RendererResult};
 use ash::{vk, Device};
 use gpu_allocator::{
-    vulkan::{Allocation, AllocationCreateDesc, Allocator as GpuAllocator},
+    vulkan::{Allocation, AllocationCreateDesc, AllocationScheme, Allocator as GpuAllocator},
     MemoryLocation,
 };
 use std::sync::{Arc, Mutex, MutexGuard};
@@ -52,6 +52,7 @@ impl Allocate for Allocator {
             requirements,
             location: MemoryLocation::CpuToGpu,
             linear: true,
+            allocation_scheme: AllocationScheme::GpuAllocatorManaged,
         })?;
 
         unsafe { device.bind_buffer_memory(buffer, allocation.memory(), allocation.offset())? };
@@ -94,6 +95,7 @@ impl Allocate for Allocator {
             requirements,
             location: MemoryLocation::GpuOnly,
             linear: true,
+            allocation_scheme: AllocationScheme::GpuAllocatorManaged,
         })?;
 
         unsafe { device.bind_image_memory(image, allocation.memory(), allocation.offset())? };
@@ -132,10 +134,10 @@ impl Allocate for Allocator {
     fn update_buffer<T: Copy>(
         &mut self,
         _device: &Device,
-        memory: &Self::Memory,
+        memory: &mut Self::Memory,
         data: &[T],
     ) -> RendererResult<()> {
-        let size = (data.len() * std::mem::size_of::<T>()) as _;
+        let size = std::mem::size_of_val(data) as _;
         unsafe {
             let data_ptr = memory
                 .mapped_ptr()
