@@ -1,5 +1,48 @@
 # Changelog
 
+## 1.12.0
+
+- Bump vk-mem to 0.3.0
+
+## 1.11.0
+
+- Bump gpu-allocator to 0.25 by @nice-sprite in #38
+
+## 1.10.0
+
+- Bump gpu-allocator to 0.23
+
+## 1.9.0
+
+- Bump imgui to 0.11
+
+## 1.8.0
+
+- Bump gpu-allocator to 0.22
+
+## 1.7.0
+
+- Bump imgui to 0.10
+
+## 1.6.1
+
+- Avoid passing negative values to `cmd_set_scissor`
+
+## 1.6.0
+
+- Bump imgui to 0.9
+- Allow gpu-allocator >= 0.19 & <= 0.21
+- Update examples and bump dev dependencies
+
+## 1.5.0
+
+- Bump gpu-allocator to 0.19
+- **BREAKING** (only with dynamic-rendering feature) Allow passing depth attachment format through `DynamicRendering` struct
+
+## 1.4.0
+
+- Add support for Vulkan dynamic rendering
+
 ## 1.3.0
 
 - Bump dependencies

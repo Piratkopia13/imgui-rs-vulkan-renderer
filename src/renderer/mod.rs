@@ -54,6 +54,14 @@ impl Default for Options {
     }
 }
 
+/// `dynamic-rendering` feature related params
+#[cfg(feature = "dynamic-rendering")]
+#[derive(Debug, Clone, Copy)]
+pub struct DynamicRendering {
+    pub color_attachment_format: vk::Format,
+    pub depth_attachment_format: Option<vk::Format>,
+}
+
 /// Vulkan renderer for imgui.
 ///
 /// It records rendering command to the provided command buffer at each call to [`cmd_draw`].
@@ -93,7 +101,8 @@ impl Renderer {
     ///             commands: [vkCmdCopyBufferToImage](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyBufferToImage.html),
     ///             [vkCmdPipelineBarrier](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPipelineBarrier.html)
     /// * `command_pool` - A Vulkan command pool used to allocate command buffers to upload textures to the gpu.
-    /// * `render_pass` - The render pass used to render the gui.
+    /// * `render_pass` - *without dynamic-rendering feature* - The render pass used to render the gui.
+    /// * `dynamic_rendering` - *with dynamic-rendering feature* - Dynamic rendeing parameters
     /// * `imgui` - The imgui context.
     /// * `options` - Optional parameters of the renderer.
     ///
@@ -108,7 +117,8 @@ impl Renderer {
         device: Device,
         queue: vk::Queue,
         command_pool: vk::CommandPool,
-        render_pass: vk::RenderPass,
+        #[cfg(not(feature = "dynamic-rendering"))] render_pass: vk::RenderPass,
+        #[cfg(feature = "dynamic-rendering")] dynamic_rendering: DynamicRendering,
         imgui: &mut Context,
         options: Option<Options>,
     ) -> RendererResult<Self> {
@@ -120,7 +130,10 @@ impl Renderer {
             queue,
             command_pool,
             Allocator::new(memory_properties),
+            #[cfg(not(feature = "dynamic-rendering"))]
             render_pass,
+            #[cfg(feature = "dynamic-rendering")]
+            dynamic_rendering,
             imgui,
             options,
         )
@@ -141,7 +154,8 @@ impl Renderer {
     ///             commands: [vkCmdCopyBufferToImage](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyBufferToImage.html),
     ///             [vkCmdPipelineBarrier](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPipelineBarrier.html)
     /// * `command_pool` - A Vulkan command pool used to allocate command buffers to upload textures to the gpu.
-    /// * `render_pass` - The render pass used to render the gui.
+    /// * `render_pass` - *without dynamic-rendering feature* - The render pass used to render the gui.
+    /// * `dynamic_rendering` - *with dynamic-rendering feature* - Dynamic rendeing parameters
     /// * `imgui` - The imgui context.
     /// * `options` - Optional parameters of the renderer.
     ///
@@ -155,7 +169,8 @@ impl Renderer {
         device: Device,
         queue: vk::Queue,
         command_pool: vk::CommandPool,
-        render_pass: vk::RenderPass,
+        #[cfg(not(feature = "dynamic-rendering"))] render_pass: vk::RenderPass,
+        #[cfg(feature = "dynamic-rendering")] dynamic_rendering: DynamicRendering,
         imgui: &mut Context,
         options: Option<Options>,
     ) -> RendererResult<Self> {
@@ -164,7 +179,10 @@ impl Renderer {
             queue,
             command_pool,
             Allocator::new(gpu_allocator),
+            #[cfg(not(feature = "dynamic-rendering"))]
             render_pass,
+            #[cfg(feature = "dynamic-rendering")]
+            dynamic_rendering,
             imgui,
             options,
         )
@@ -185,7 +203,8 @@ impl Renderer {
     ///             commands: [vkCmdCopyBufferToImage](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyBufferToImage.html),
     ///             [vkCmdPipelineBarrier](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPipelineBarrier.html)
     /// * `command_pool` - A Vulkan command pool used to allocate command buffers to upload textures to the gpu.
-    /// * `render_pass` - The render pass used to render the gui.
+    /// * `render_pass` - *without dynamic-rendering feature* - The render pass used to render the gui.
+    /// * `dynamic_rendering` - *with dynamic-rendering feature* - Dynamic rendeing parameters
     /// * `imgui` - The imgui context.
     /// * `options` - Optional parameters of the renderer.
     ///
@@ -199,7 +218,8 @@ impl Renderer {
         device: Device,
         queue: vk::Queue,
         command_pool: vk::CommandPool,
-        render_pass: vk::RenderPass,
+        #[cfg(not(feature = "dynamic-rendering"))] render_pass: vk::RenderPass,
+        #[cfg(feature = "dynamic-rendering")] dynamic_rendering: DynamicRendering,
         imgui: &mut Context,
         options: Option<Options>,
     ) -> RendererResult<Self> {
@@ -208,7 +228,10 @@ impl Renderer {
             queue,
             command_pool,
             Allocator::new(vk_mem_allocator),
+            #[cfg(not(feature = "dynamic-rendering"))]
             render_pass,
+            #[cfg(feature = "dynamic-rendering")]
+            dynamic_rendering,
             imgui,
             options,
         )
@@ -219,7 +242,8 @@ impl Renderer {
         queue: vk::Queue,
         command_pool: vk::CommandPool,
         mut allocator: Allocator,
-        render_pass: vk::RenderPass,
+        #[cfg(not(feature = "dynamic-rendering"))] render_pass: vk::RenderPass,
+        #[cfg(feature = "dynamic-rendering")] dynamic_rendering: DynamicRendering,
         imgui: &mut Context,
         options: Option<Options>,
     ) -> RendererResult<Self> {
@@ -238,11 +262,19 @@ impl Renderer {
 
         // Pipeline and layout
         let pipeline_layout = create_vulkan_pipeline_layout(&device, descriptor_set_layout)?;
-        let pipeline = create_vulkan_pipeline(&device, pipeline_layout, render_pass, options)?;
+        let pipeline = create_vulkan_pipeline(
+            &device,
+            pipeline_layout,
+            #[cfg(not(feature = "dynamic-rendering"))]
+            render_pass,
+            #[cfg(feature = "dynamic-rendering")]
+            dynamic_rendering,
+            options,
+        )?;
 
         // Fonts texture
         let fonts_texture = {
-            let mut fonts = imgui.fonts();
+            let fonts = imgui.fonts();
             let atlas_texture = fonts.build_rgba32_texture();
 
             Texture::from_rgba8(
@@ -256,7 +288,7 @@ impl Renderer {
             )?
         };
 
-        let mut fonts = imgui.fonts();
+        let fonts = imgui.fonts();
         fonts.tex_id = TextureId::from(usize::MAX);
 
         // Descriptor pool
@@ -302,6 +334,7 @@ impl Renderer {
     /// # Errors
     ///
     /// * [`RendererError`] - If any Vulkan error is encountered during pipeline creation.
+    #[cfg(not(feature = "dynamic-rendering"))]
     pub fn set_render_pass(&mut self, render_pass: vk::RenderPass) -> RendererResult<()> {
         unsafe { self.device.destroy_pipeline(self.pipeline, None) };
         self.pipeline = create_vulkan_pipeline(
@@ -370,7 +403,7 @@ impl Renderer {
     ) -> RendererResult<()> {
         // Generate the new fonts texture
         let fonts_texture = {
-            let mut fonts = imgui.fonts();
+            let fonts = imgui.fonts();
             let atlas_texture = fonts.build_rgba32_texture();
 
             Texture::from_rgba8(
@@ -384,7 +417,7 @@ impl Renderer {
             )?
         };
 
-        let mut fonts = imgui.fonts();
+        let fonts = imgui.fonts();
         fonts.tex_id = TextureId::from(usize::MAX);
 
         // Free Descriptor set the create a new one
@@ -520,8 +553,8 @@ impl Renderer {
 
                             let scissors = [vk::Rect2D {
                                 offset: vk::Offset2D {
-                                    x: clip_x as _,
-                                    y: clip_y as _,
+                                    x: (clip_x as i32).max(0),
+                                    y: (clip_y as i32).max(0),
                                 },
                                 extent: vk::Extent2D {
                                     width: clip_w as _,
@@ -716,7 +749,7 @@ mod mesh {
 
                 allocator.destroy_buffer(device, old_vertices, old_vertices_mem)?;
             }
-            allocator.update_buffer(device, &self.vertices_mem, &vertices)?;
+            allocator.update_buffer(device, &mut self.vertices_mem, &vertices)?;
 
             let indices = create_indices(draw_data);
             if draw_data.total_idx_count as usize > self.index_count {
@@ -736,7 +769,7 @@ mod mesh {
 
                 allocator.destroy_buffer(device, old_indices, old_indices_mem)?;
             }
-            allocator.update_buffer(device, &self.indices_mem, &indices)?;
+            allocator.update_buffer(device, &mut self.indices_mem, &indices)?;
 
             Ok(())
         }
