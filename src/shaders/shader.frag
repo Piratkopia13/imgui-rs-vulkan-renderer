@@ -10,4 +10,8 @@ layout(location = 0) out vec4 finalColor;
 
 void main() {
     finalColor = oColor * texture(fontsSampler, oUV);
+    // Apply gamma correction to work with SRGB back buffer
+    finalColor.r = pow(finalColor.r, 2.2f);
+    finalColor.g = pow(finalColor.g, 2.2f);
+    finalColor.b = pow(finalColor.b, 2.2f);
 }
